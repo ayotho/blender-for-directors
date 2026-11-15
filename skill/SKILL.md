@@ -1,44 +1,30 @@
 ---
 name: blender-director
-description: Use when the user directs a 3D scene in Blender through the blender MCP tools. Build in small steps, screenshot after every change, explain in plain film language.
+description: Use when a director (non-Blender user) wants 3D previz in Blender through the blender MCP tools, usually to guide AI video. Simple steps, show after every change.
 ---
 
 # Blender director
 
-The user is a director, not a Blender artist. They describe shots in film language. You operate Blender through the `blender` MCP server (MCP for Blender) and show your work after every change.
+The user is a film director, not a Blender user. Full instructions: https://github.com/ayotho/blender-for-directors (start at AGENTS.md). Summary:
 
-## Loop
+## Talk
+- One step per message, one or two sentences, a check at the end ("tell me when you see...", "send a screenshot").
+- No technical words. Name buttons in bold exactly as on screen. Never show error text: say "small hiccup" and give the next step.
+- Do everything you can yourself; only hand over clicks, downloads, approvals and sign-ins.
 
-1. Start: get scene info, report in one line what's there.
-2. Make ONE change per step, in this order: set → blocking → camera → light → movement → look → output.
-3. After every change, take a viewport screenshot or render one frame through the active camera, and look at it before reporting. Never claim a result you have not seen.
-4. Report in plain words. Explain any Blender term once in brackets.
-5. Vague note → best interpretation, show it, offer one alternative. No question lists.
-6. Save before risky changes (bulk delete, imports, long code). Remind the user to save every few steps.
-7. On failure: one-line cause, undo, simpler approach. Max two retries on the same error.
-8. End each step by offering the next logical step in one line.
+## Build
+- Layers: set → blocking → camera → light → movement → look → export. Show and save after each.
+- Look before reporting: viewport screenshot or one-frame render through the camera after every change.
+- Rough shapes and stand-ins; import free models for people/props rather than modelling.
+- Defaults: 24 fps, 1920×1080 (vertical 1080×1920), metres, person 1.75 m, 35mm at eye height, EEVEE previews.
+- Vague note → best take + one alternative. Max two retries per error.
 
-## Defaults
+## Hand off to AI video
+- Export `<shot>_previz.mp4` (EEVEE, H.264, 1280×720, 24 fps) and `<shot>_frame1.png`. Verify both exist.
+- Three inputs: character reference (identity), environment image (place/mood), Blender previz (camera/timing/blocking).
+- Prompt: Camera → Subject → Action → Light/mood → Sound, 20-50 words, physical actions, film terms, no contradictions.
 
-- 24 fps; 1920x1080 (vertical: 1080x1920); metres; person ≈ 1.75 m; camera 35mm at 1.6 m.
-- EEVEE for previews, Cycles only for a requested final render.
-- Blocking uses primitives and named objects. Characters: import a free model (Sketchfab / Poly Haven / Poly Pizza) rather than modelling one.
-
-## Film language → Blender
-
-| Director says | Do |
-|---|---|
-| wide / medium / close-up | lens ~24 / 35-50 / 85mm and adjust distance |
-| dolly in/out, truck, pedestal | keyframe camera location |
-| pan, tilt, orbit | keyframe camera rotation; orbit = parent to an empty and rotate it |
-| shallow focus, rack focus | enable DOF, set focus object, low f-stop; animate focus distance |
-| golden hour, blue hour, night | sun angle + colour temperature, world colour or HDRI, practical lights |
-| block it | primitives only, positions and camera |
-| show me | screenshot / single-frame render through the camera |
-| lock it | save; don't touch that layer again unless asked |
-
-## Pitfalls
-
-- Check the Blender version once (`bpy.app.version`) before writing Python. In Blender 5.x set `render.image_settings.media_type = 'VIDEO'` before `file_format = 'FFMPEG'`, and actions are layered (no `action.fcurves`).
-- Long scripts time out: split them.
-- Only one MCP client should be connected to Blender at a time.
+## Code
+- Check `bpy.app.version_string` first. Blender 5.x: set `image_settings.media_type='VIDEO'` before `file_format='FFMPEG'`; actions are layered (no `action.fcurves`), so prefer `keyframe_insert`.
+- Save before long scripts; split long scripts; name every object.
+- Only one AI app should be connected to Blender at a time.
